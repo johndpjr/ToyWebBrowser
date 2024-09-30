@@ -35,8 +35,10 @@ class URL:
             ctx = ssl.create_default_context()
             s = ctx.wrap_socket(s, server_hostname=self.host)
         # Request
-        request = f"GET {self.path} HTTP/1.0\r\n"
+        request = f"GET {self.path} HTTP/1.1\r\n"
         request += f"Host: {self.host}\r\n"
+        request += "Connection: close\r\n"
+        request += "User-Agent: ToyWebBrowser/v0.0\r\n"
         request += "\r\n"
         s.send(request.encode("utf8"))
         # Response
