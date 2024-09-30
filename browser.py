@@ -1,4 +1,5 @@
 import socket
+import subprocess
 import ssl
 import sys
 
@@ -9,7 +10,7 @@ class URL:
 
     def __init__(self, url: str):
         self.scheme, url = url.split("://", 1)
-        assert self.scheme in ["http", "https"]
+        assert self.scheme in ["file", "http", "https"]
         if self.scheme == "http":
             self.port = self.HTTP_PORT
         elif self.scheme == "https":
@@ -24,6 +25,9 @@ class URL:
             self.port = int(port)
 
     def request(self):
+        if self.scheme == "file":
+            subprocess.call(("xdg-open", self.path))
+            return None
         # Connect to remote server
         s = socket.socket(
             socket.AF_INET,
@@ -71,7 +75,8 @@ def show(body: str):
 
 def load(url: URL):
     body = url.request()
-    show(body)
+    if body:
+        show(body)
 
 
 if __name__ == "__main__":
