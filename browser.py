@@ -75,15 +75,14 @@ def lex(body: str):
     return text
 
 
-def layout(text: str):
-    WIDTH = 800
+def layout(text: str, width: int):
     HSTEP, VSTEP = 13, 18
     display_list = []
     cursor_x, cursor_y = HSTEP, VSTEP
     for c in text:
         display_list.append((cursor_x, cursor_y, c))
         cursor_x += HSTEP
-        if cursor_x >= WIDTH - HSTEP:
+        if cursor_x >= width - HSTEP:
             cursor_y += VSTEP
             cursor_x = HSTEP
     return display_list
@@ -101,7 +100,9 @@ class Browser:
             width=self.WIDTH,
             height=self.HEIGHT
         )
-        self.canvas.pack()
+        self.window.resizable(True, True)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.window.bind("<Configure>", self.resize)
         self.scroll = 0
         self.window.bind("<Up>", self.scrollup)
         self.window.bind("<Down>", self.scrolldown)
@@ -111,8 +112,8 @@ class Browser:
 
     def load(self, url: URL):
         body = url.request()
-        text = lex(body)
-        self.display_list = layout(text)
+        self.text = lex(body)
+        self.display_list = layout(self.text, self.WIDTH)
         self.draw()
 
     def draw(self):
@@ -121,6 +122,10 @@ class Browser:
             if y > self.scroll + self.HEIGHT: continue
             if y + self.VSTEP < self.scroll: continue
             self.canvas.create_text(x, y - self.scroll, text=c)
+
+    def resize(self, e):
+        self.window.geometry(f"{e.width}x{e.height}")
+        self.display_list = layout(self.text, e.width)
 
     def scrollup(self, e):
         self.scroll -= self.SCROLL_STEP
