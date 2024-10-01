@@ -103,7 +103,11 @@ class Browser:
         )
         self.canvas.pack()
         self.scroll = 0
+        self.window.bind("<Up>", self.scrollup)
         self.window.bind("<Down>", self.scrolldown)
+        # Support scrolling events (2-2)
+        self.window.bind("<Button-4>", self.scrollup)
+        self.window.bind("<Button-5>", self.scrolldown)
 
     def load(self, url: URL):
         body = url.request()
@@ -117,6 +121,10 @@ class Browser:
             if y > self.scroll + self.HEIGHT: continue
             if y + self.VSTEP < self.scroll: continue
             self.canvas.create_text(x, y - self.scroll, text=c)
+
+    def scrollup(self, e):
+        self.scroll -= self.SCROLL_STEP
+        self.draw()
 
     def scrolldown(self, e):
         self.scroll += self.SCROLL_STEP
