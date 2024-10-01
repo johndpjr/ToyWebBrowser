@@ -1,7 +1,7 @@
 import socket
 import subprocess
 import ssl
-import sys
+import tkinter as tk
 
 
 class URL:
@@ -62,7 +62,8 @@ class URL:
         return content
 
 
-def show(body: str):
+def lex(body: str):
+    text = ""
     in_tag = False
     for c in body:
         if c == "<":
@@ -70,14 +71,59 @@ def show(body: str):
         elif c == ">":
             in_tag = False
         elif not in_tag:
-            print(c, end="")
+            text += c
+    return text
 
 
-def load(url: URL):
-    body = url.request()
-    if body:
-        show(body)
+def layout(text: str):
+    WIDTH = 800
+    HSTEP, VSTEP = 13, 18
+    display_list = []
+    cursor_x, cursor_y = HSTEP, VSTEP
+    for c in text:
+        display_list.append((cursor_x, cursor_y, c))
+        cursor_x += HSTEP
+        if cursor_x >= WIDTH - HSTEP:
+            cursor_y += VSTEP
+            cursor_x = HSTEP
+    return display_list
+
+
+class Browser:
+    WIDTH, HEIGHT = 800, 600
+    VSTEP = 18
+    SCROLL_STEP = 100
+
+    def __init__(self):
+        self.window = tk.Tk()
+        self.canvas = tk.Canvas(
+            self.window,
+            width=self.WIDTH,
+            height=self.HEIGHT
+        )
+        self.canvas.pack()
+        self.scroll = 0
+        self.window.bind("<Down>", self.scrolldown)
+
+    def load(self, url: URL):
+        body = url.request()
+        text = lex(body)
+        self.display_list = layout(text)
+        self.draw()
+
+    def draw(self):
+        self.canvas.delete("all")
+        for x, y, c in self.display_list:
+            if y > self.scroll + self.HEIGHT: continue
+            if y + self.VSTEP < self.scroll: continue
+            self.canvas.create_text(x, y - self.scroll, text=c)
+
+    def scrolldown(self, e):
+        self.scroll += self.SCROLL_STEP
+        self.draw()
 
 
 if __name__ == "__main__":
-    load(URL(sys.argv[1]))
+    import sys
+    Browser().load(URL(sys.argv[1]))
+    tk.mainloop()
