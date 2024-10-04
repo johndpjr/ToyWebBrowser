@@ -1,20 +1,11 @@
 import tkinter as tk
 import tkinter.font
 
-from . import URL
+from . import URL, Text, Element
+from .parsers import HTMLParser
 
 
 FONTS = {}
-
-
-class Text:
-    def __init__(self, text):
-        self.text = text
-
-
-class Tag:
-    def __init__(self, tag):
-        self.tag = tag
 
 
 def get_font(size, weight, style):
@@ -29,31 +20,11 @@ def get_font(size, weight, style):
     return FONTS[key][0]
 
 
-def lex(body: str):
-    out = []
-    buffer = ""
-    in_tag = False
-    for c in body:
-        if c == "<":
-            in_tag = True
-            if buffer: out.append(Text(buffer))
-            buffer = ""
-        elif c == ">":
-            in_tag = False
-            out.append(Tag(buffer))
-            buffer = ""
-        elif not in_tag:
-            buffer += c
-    if not in_tag and buffer:
-        out.append(Text(buffer))
-    return out
-
-
 class Layout:
     HSTEP, VSTEP = 13, 18
     WIDTH, HEIGHT = 800, 600
 
-    def __init__(self, tokens: list[Text | Tag]):
+    def __init__(self, tokens: list[Text | Element]):
         self.tokens = tokens
         self.display_list = []
 
